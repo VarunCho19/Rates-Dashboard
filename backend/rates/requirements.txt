@@ -1,9 +1,9 @@
-fredapi
 os
 matplotlib
 pandas
 numpy
 datetime
+fredapi
 fastapi
 uvicorn
 
