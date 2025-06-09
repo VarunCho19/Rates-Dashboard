@@ -1,0 +1,8 @@
+fredapi
+os
+matplotlib
+pandas
+numpy
+datetime
+fastapi
+uvicorn
