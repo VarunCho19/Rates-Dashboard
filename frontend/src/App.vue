@@ -14,8 +14,12 @@ import YieldCurve from './components/YieldCurve.vue'
         <router-link to="/yc_view" class="nav-link">
           Yield Curve
         </router-link>
+        <router-link to="/crypto_view" class="nav-link">
+          Crypto Market
+        </router-link>
       </nav>
     </div>
+    <router-view></router-view>
   </header>
 </template>
 

@@ -7,6 +7,7 @@
 </template>
 
 <script setup>
+console.log('YieldCurve component loaded');
 import { ref, onMounted } from 'vue';
 import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, LinearScale, CategoryScale } from 'chart.js';
@@ -30,6 +31,7 @@ const chartOptions = ref({
 
 const fetchYieldCurveData = async () => {
   try {
+    console.log('Fetching yield curve data...');
     const response = await fetch('https://rates-dashboard.onrender.com/yields')
     const data = await response.json()
     console.log('Yield Curve Data Recevied:', data);

@@ -1,9 +1,10 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import websockets
+import json
 
 app = FastAPI()
-# Allow CORS for all origins
+
 origins = [
     "http://localhost:5173",  # for local dev
 ]
@@ -16,29 +17,41 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Coinbase WebSocket URL for BTC-USD level2 updates
 COINBASE_WS_URL = "wss://ws-feed.exchange.coinbase.com"
 
-@app.websocket("/ws/orderbook")
-async def orderbook_stream(websocket: WebSocket):
+@app.websocket("/ws/ticker")
+async def ticker_stream(websocket: WebSocket):
     await websocket.accept()
     try:
         async with websockets.connect(COINBASE_WS_URL) as ws:
-            await ws.send(json.dumps({
+            # Subscribe to ticker channel for BTC-USD
+            subscribe_msg = {
                 "type": "subscribe",
-                "channels": [{"name": "level2", "product_ids": ["BTC-USD"]}]
-            }))
+                "channels": [{"name": "ticker", "product_ids": ["BTC-USD"]}]
+            }
+            await ws.send(json.dumps(subscribe_msg))
+            print("✅ Subscribed to Coinbase ticker")
+
             async for message in ws:
                 data = json.loads(message)
-                if data.get("type") == "snapshot":
-                    if data.get("type") in ["l2update", "snapshot"]:
-                        update = {
-                            "bids": data.get("bids", []),
-                            "asks": data.get("asks", []),
-                            "type": data.get("type")
-                        }
-                        await websocket.send_json(update)
+                print("📩 Ticker data:", data)
+                if data.get("type") == "ticker":
+                    update = {
+                        "type": data["type"],
+                        "price": data.get("price"),
+                        "best_bid": data.get("best_bid"),
+                        "best_ask": data.get("best_ask"),
+                        "time": data.get("time")
+                    }
+                    await websocket.send_text(json.dumps(update))
     except WebSocketDisconnect:
-        pass
+        print("🔌 WebSocket disconnected")
     except Exception as e:
-        await websocket.close(code=1000, reason=str(e))
+        await websocket.close()
         print(f"WebSocket error: {e}")
+
+@app.get("/")
+def root():
+    return {"message": "Real-Time Ticker via Coinbase WebSocket"}
